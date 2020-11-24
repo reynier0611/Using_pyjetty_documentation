@@ -1,0 +1,278 @@
+\documentclass[12pt]{article}
+
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{amssymb}
+\usepackage{mathrsfs}
+\usepackage{geometry}
+\usepackage{color}
+\usepackage{verbatimbox}
+\geometry{margin=2cm}
+
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+}
+
+\usepackage{url}
+\usepackage{tcolorbox}
+\usepackage{multirow}
+\usepackage{float}
+
+\usepackage{setspace}
+\onehalfspacing
+
+\newcommand\tab[1][1cm]{\hspace*{#1}}
+
+
+\title{Using pyjetty}
+\author{Reynier Cruz Torres}
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+
+% ========================================================================================
+\newpage
+\section{Processing}
+
+Example on running a local pp data job:
+
+\begin{tcolorbox}
+\begin{verbnobox}[\scriptsize]
+python process/user/rey/process_data_energy_drop.py \
+-f /rstorage/alice/data/LHC17pq/448/20-06-2020/448_20200619-0610/unmerged/child_1/0001/AnalysisResults.root \
+-c config/energy_drop/rey_pp.yaml
+\end{verbnobox}  
+\end{tcolorbox}
+
+Example on running a local pp mc job:
+\begin{tcolorbox}
+\begin{verbnobox}[\scriptsize]
+python process/user/rey/process_mc_energy_drop.py \
+-f /rstorage/alice/data/LHC18b8/449/child_1/TrainOutput/1/282008/0001/AnalysisResults.root \
+-c config/energy_drop/rey_pp.yaml
+\end{verbnobox}  
+\end{tcolorbox}
+
+Example on running a slurm data job:
+\begin{tcolorbox}
+\begin{verbnobox}[\scriptsize]
+cd slurm/sbatch/energy_drop/
+sbatch slurm_LHC17pq.sh
+\end{verbnobox}  
+\end{tcolorbox}
+
+% ========================================================================================
+\section{Merging data root files}
+
+\begin{itemize}
+\item \verb|cd| \verb|pyjetty/pyjetty/alice_analysis/slurm/utils/rey|
+\item open the file \verb|merge_data.sh|
+
+\begin{tcolorbox}
+\begin{verbnobox}[\scriptsize]
+#! /bin/bash
+#
+# Script to merge output ROOT files
+
+JOB_ID=209383
+
+FILE_DIR="/rstorage/alice/AnalysisResults/rey/$JOB_ID"
+FILES=$( find "$FILE_DIR" -name "*.root" )
+
+OUTPUT_DIR=/rstorage/alice/AnalysisResults/rey/$JOB_ID
+hadd -f -j 20 $OUTPUT_DIR/AnalysisResultsFinal.root $FILES
+\end{verbnobox}  
+\end{tcolorbox}
+
+\item edit this file and replace \verb|rey| with your username and edit the number in \verb|JOB_ID=209383| with the correct run number that you would like to merge
+\item \verb|source merge_data.sh|
+\end{itemize}
+
+% ========================================================================================
+\section{Scaling and merging MC root files}
+
+The MC files are produced separate in $\hat{p}_T$ bins. This is done to focus the generation in different bins
+and accrue similar amount of statistics even in the bins where the cross section is small. Consequently, these files need to be scaled by the cross section
+before combining them.
+
+\begin{enumerate}
+\item hadd all root files corresponding to the same $\hat{p}_T$ bin.
+See, for example: \href{https://github.com/reynier0611/pyjetty/blob/master/pyjetty/alice_analysis/slurm/utils/rey/slurm_merge_LHC18b8.sh}{slurm\_merge\_LHC18b8.sh} and
+\href{https://github.com/reynier0611/pyjetty/blob/master/pyjetty/alice_analysis/slurm/utils/rey/merge_LHC18b8.sh}{merge\_LHC18b8.sh}.
+Edit both files and replace \verb|rey| with the appropriate username. Also, modify the number in \verb|JOB_ID=209384| in \verb|merge_LHC18b8.sh| to reflect the right job number.
+
+\begin{tcolorbox}
+\begin{verbnobox}[\scriptsize]
+sbatch slurm_merge_LHC18b8.sh
+\end{verbnobox}  
+\end{tcolorbox}
+
+\item cd into the directory containing the 1/, 2/, ... sub-directories and scale the combined files corresponding to a given $\hat{p}_T$ bin by the appropriate scale factor.
+To do so, run scaleHistograms.py (with the correct file path) and config file associated with the simulation, e.g. -c /rstorage/alice/data/LHC18b8/scaleFactors.yaml.
+Here's an example:
+
+\begin{tcolorbox}
+\begin{verbnobox}[\scriptsize]
+python /home/rey/pyjetty/pyjetty/alice_analysis/slurm/utils/rey/scaleHistograms.py \
+-c /rstorage/alice/data/LHC18b8/scaleFactors.yaml
+\end{verbnobox}  
+\end{tcolorbox}
+
+\item After the histograms have been scaled, you should merge the $\hat{p}_T$ bins. See for example \href{https://github.com/reynier0611/pyjetty/blob/master/pyjetty/alice_analysis/slurm/utils/rey/merge_pthat.sh}{merge\_pthat.sh}.
+The number in the line \verb|JOB_ID=209384| and paths should be updated. Then do:
+
+\begin{tcolorbox}
+\begin{verbnobox}[\scriptsize]
+source merge_pthat.sh
+\end{verbnobox}  
+\end{tcolorbox}
+
+\end{enumerate}
+
+% ========================================================================================
+\section{Analysis}
+
+\subsection{Writing analysis code}
+
+You need to begin by creating a code in: \verb|pyjetty/pyjetty/alice_analysis/analysis/user/|.
+This code will inherit from
+\href{https://github.com/reynier0611/pyjetty/blob/master/pyjetty/alice_analysis/analysis/user/substructure/run_analysis.py}{/substructure/run\_analysis.py}.
+For an example analysis code see: \href{https://github.com/reynier0611/pyjetty/blob/master/pyjetty/alice_analysis/analysis/user/rey/run_analysis_energy_drop.py}{run\_analysis\_energy\_drop.py}.
+
+\subsubsection{Functions the user needs to implement}
+
+There are three main functions the user needs to implement in the analysis code:
+
+\begin{itemize}
+\item \verb|plot_single_result()|
+\item \verb|plot_all_results()|
+\item \verb|plot_performance()|
+\end{itemize}
+
+The function names are self-explanatory.
+
+\subsection{Running analysis code}
+
+\begin{tcolorbox}
+\begin{verbnobox}[\scriptsize]
+python analysis/user/rey/run_analysis_energy_drop.py  -c config/energy_drop/rey_pp.yaml
+\end{verbnobox}  
+\end{tcolorbox}
+
+\subsection{What happens when you run the analysis code}
+
+Right away, what the code does is it runs the `main' function \href{https://github.com/reynier0611/pyjetty/blob/master/pyjetty/alice_analysis/analysis/user/substructure/run_analysis.py#L223}{run\_analysis()} defined in \verb|run_analysis.py|.
+The first step in this function is to do unfolding (if the user requested it) through the function \href{https://github.com/reynier0611/pyjetty/blob/master/pyjetty/alice_analysis/analysis/user/substructure/run_analysis.py#L257}{perform\_unfolding()},
+also defined in \verb|run_analysis.py|.
+
+This function loops over the `systematic' settings defined in the config file. For each setting, the code sets variables related to inputs and outputs:
+
+\begin{tcolorbox}
+\begin{verbnobox}[\scriptsize]
+output_dir = getattr(self, `output_dir_{}'.format(systematic))
+data = self.main_data
+response = self.main_response
+
+main_response_location = os.path.join(getattr(self, `output_dir_main'), `response.root')
+rebin_response = self.check_rebin_response(output_dir)
+\end{verbnobox}  
+\end{tcolorbox}
+
+It the initializes some variables:
+
+\begin{tcolorbox}
+\begin{verbnobox}[\scriptsize]
+prior_variation_parameter = 0.
+truncation = False
+binning = False
+R_max =  self.R_max
+prong_matching_response = False
+\end{verbnobox}  
+\end{tcolorbox}
+
+And it finally sets these variables depending on the systematic setting to be unfolded:
+
+\begin{tcolorbox}
+\begin{verbnobox}[\scriptsize]
+if systematic == `trkeff':
+   response = self.trkeff_response
+elif systematic == `prior1':
+   prior_variation_parameter = self.prior1_variation_parameter
+elif systematic == `prior2':
+   prior_variation_parameter = self.prior2_variation_parameter
+elif systematic == `truncation':
+   truncation = True
+elif systematic == `binning':
+   binning = True
+elif systematic == `subtraction1':
+   R_max = self.R_max1
+elif systematic == `subtraction2':
+   R_max = self.R_max2
+elif systematic == `prong_matching':
+   prong_matching_response = True
+\end{verbnobox}  
+\end{tcolorbox}
+
+Once these variables have been properly set, the code
+\href{https://github.com/reynier0611/pyjetty/blob/master/pyjetty/alice_analysis/analysis/user/substructure/run_analysis.py#L292}{creates an instance of the Roounfold\_Obs class}, and subsequently
+runs the function \href{https://github.com/reynier0611/pyjetty/blob/master/pyjetty/alice_analysis/analysis/user/substructure/run_analysis.py#L297}{roounfold\_obs()}.
+
+\subsubsection{Unfolding}
+
+The \verb|Roounfold_Obs| class and the \verb|roounfold_obs()| function are defined in \href{https://github.com/reynier0611/pyjetty/blob/master/pyjetty/alice_analysis/analysis/user/substructure/roounfold_obs.py}{roounfold\_obs.py}.
+ 
+When the instance of the \verb|Roounfold_Obs| class is created, the function \verb|create_output_dirs()| is called. This function creates the following directories:
+`RM', `Data', `KinematicEfficiency', `Unfolded\_obs', `Unfolded\_pt', `Unfolded\_ratio', `Unfolded\_stat\_uncert', `Test\_StatisticalClosure', `Test\_Refolding', `Correlation\_Coefficients' and
+if the variable \verb|thermal_model| is true, `Test\_ThermalClosure'.
+Also, two directories called `Test\_ShapeClosure\{\}' are created. Here, \{\} corresponds to the prior variation parameters defined at the bottom of the config file (with periods removed).
+For instance, if the config file has:
+
+\begin{tcolorbox}
+\begin{verbnobox}[\scriptsize]
+prior1_variation_parameter: 0.5
+prior2_variation_parameter: -0.5
+\end{verbnobox}  
+\end{tcolorbox}
+
+then you will get the directories `Test\_ShapeClosure-05' and `Test\_ShapeClosure05'.
+
+During the unfolding procedure, three validation tests are carried out:
+
+\begin{enumerate}
+\item Refolding test: the Response Matrix (RM) is multiplied by the unfolded result, and compared to the original detector-level distribution.
+\item Statistical closure test:
+
+\begin{itemize}
+\item MC det-level is smeared by an amount equal to the measured statistical uncertainty
+\item the smeared det-level MC is then unfolded
+\item unfolded smeared MC is compared to MC truth-level
+\end{itemize}
+
+This test checks whether the unfolding procedure is insensitive to statistical fluctuations of the measured spectra.
+
+\item Shape closure test:
+
+\begin{itemize}
+\item MC det-level and MC truth-level spectra are scaled
+\item scaled MC det-level spectrum is unfolded
+\item MC truth-level and unfolded scaled MC det-level spectra are compared
+\end{itemize}
+
+This test checks whether the unfolding procedure is insensitive to the 
+shape of the measured distribution.
+
+\end{enumerate}
+
+\end{document}
+
+
+
+
+
