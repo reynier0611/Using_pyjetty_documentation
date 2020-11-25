@@ -158,6 +158,10 @@ There are three main functions the user needs to implement in the analysis code:
 
 The function names are self-explanatory.
 
+You also need to edit two functions in \href{https://github.com/reynier0611/pyjetty/blob/master/pyjetty/alice_analysis/analysis/user/substructure/analysis_utils_obs.py}{analysis/user/substructure/analysis\_utils\_obs.py}:
+
+\verb|formatted_subobs_label| and \verb|prior_scale_factor_obs|.
+
 \subsection{Running analysis code}
 
 \begin{tcolorbox}
@@ -243,11 +247,31 @@ prior2_variation_parameter: -0.5
 
 then you will get the directories `Test\_ShapeClosure-05' and `Test\_ShapeClosure05'.
 
+The unfolding procedure is done two-dimensionally in the observable and in $p_{\rm T}$.
+The response matrix corresponds to:
+
+\begin{equation}
+\Lambda = (p_{\rm T, det}, p_{\rm T, true}, {\rm observable_{det}}, {\rm observable_{true}}).
+\end{equation}
+This matrix is then used to unfold the data using Bayes' theorem:
+
+\begin{equation}
+P(T|O,\Lambda) = \frac{P(O|T,\Lambda) \cdot P(T)}{P(O)},
+\end{equation}
+where $P(T|O,\Lambda)$ is the likelihood of the truth ($T$) occurring given that the observation ($O$) is true.
+Similarly, $P(O|T,\Lambda)$ is the likelihood of $O$ occurring given that $T$ is true.
+$P(T)$ and $P(O)$ are the marginal probabilities of observing $T$ and $O$, respectively.
+
+\subsubsection{Unfolding tests}
+
 During the unfolding procedure, three validation tests are carried out:
 
 \begin{enumerate}
-\item Refolding test: the Response Matrix (RM) is multiplied by the unfolded result, and compared to the original detector-level distribution.
-\item Statistical closure test:
+\item {\bf Refolding test:} the Response Matrix (RM) is multiplied by the unfolded result, and compared to the original detector-level distribution.
+This is done in roounfold\_obs.py in the \verb|refolding_test| function. Before doing the refolding, the kinematic-efficiency correction is reverted.
+Then, the output plots are created in \verb|plot_obs_refolded_slice|. In these plots, the folded truth level and the detector-level (i.e. pre-unfolding) data are compared.
+
+\item {\bf Statistical closure test:}
 
 \begin{itemize}
 \item MC det-level is smeared by an amount equal to the measured statistical uncertainty
@@ -256,8 +280,10 @@ During the unfolding procedure, three validation tests are carried out:
 \end{itemize}
 
 This test checks whether the unfolding procedure is insensitive to statistical fluctuations of the measured spectra.
+This is done in roounfold\_obs.py in the \verb|statistical_closure_test| function.
+Then, the output plots are created in \verb|plot_obs_closure_slice|.
 
-\item Shape closure test:
+\item {\bf Shape closure test:}
 
 \begin{itemize}
 \item MC det-level and MC truth-level spectra are scaled
@@ -267,6 +293,18 @@ This test checks whether the unfolding procedure is insensitive to statistical f
 
 This test checks whether the unfolding procedure is insensitive to the 
 shape of the measured distribution.
+This is done in roounfold\_obs.py in the \verb|shape_closure_test| function, which calls the
+\verb|shape_closure_test_single| function twice, once with each shape-variation parameter.
+Then, the output plots are created in \verb|plot_obs_closure_slice|.
+
+\subsubsection{Kinematic efficiency}
+
+The kinematic efficiency is calculated in \href{https://github.com/reynier0611/pyjetty/blob/master/pyjetty/alice_analysis/analysis/user/substructure/roounfold_obs.py}{roounfold\_obs.py} in the \verb|plot_kinematic_efficiency| function.
+1D slices are plotted in \verb|plot_kinematic_efficiency_projections|. In the case of the jet axis analysis, this is defined as:
+
+\begin{equation}
+\varepsilon_{\rm kin}(\Delta R_{\rm true} , p_{\rm T, true}) \equiv \frac{\frac{dN}{d\Delta R_{\rm true}}\big(\Delta R_{\rm det}\in \big[0,R/2\big],p_{\rm T, det} \in \big[10,80\big]\big)}{\frac{dN}{d\Delta R_{\rm true}}\big(\Delta R_{\rm det}\in \big[0,R/2\big],p_{\rm T, det} \in \big[0,\infty\big]\big)}
+\end{equation}
 
 \end{enumerate}
 
