@@ -308,6 +308,36 @@ The kinematic efficiency is calculated in \href{https://github.com/reynier0611/p
 
 \end{enumerate}
 
+\subsection{Systematic Uncertainties}
+
+By default, pyjetty extracts the following sources of systematics:
+
+\begin{itemize}
+\item track efficiency
+\item regularization parameter
+\item priors 1, 2
+\item truncation
+\item binning
+\end{itemize}
+
+The explanation for each of these systematics is given below.
+
+\subsubsection{Track efficiency}
+
+The uncertainty on the tracking efficiency is approximately $4\%$ for hybrid tracks \cite{Alice_AN_534,Alice_AN_818,james,ezra}.
+To assign a systematic uncertainty that accounts for this effect, we construct a response matrix by randomly rejecting $4\%$ of tracks in jet finding.
+The resulting response matrix is then used to unfold the data.
+
+\subsubsection{Regularization parameter}
+\subsubsection{Priors 1, 2}
+\subsubsection{Truncation}
+\subsubsection{Binning}
+
+% ========================================================================================
+
+\bibliography{bib_file}
+\bibliographystyle{ieeetr}
+
 \end{document}
 
 
