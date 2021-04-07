@@ -97,6 +97,7 @@ hadd -f -j 20 $OUTPUT_DIR/AnalysisResultsFinal.root $FILES
 
 % ========================================================================================
 \section{Scaling and merging MC root files}
+\label{sec:scale_merge}
 
 The MC files are produced separate in $\hat{p}_T$ bins. This is done to focus the generation in different bins
 and accrue similar amount of statistics even in the bins where the cross section is small. Consequently, these files need to be scaled by the cross section
@@ -124,6 +125,27 @@ python /home/rey/pyjetty/pyjetty/alice_analysis/slurm/utils/rey/scaleHistograms.
 -c /rstorage/alice/data/LHC18b8/scaleFactors.yaml
 \end{verbnobox}  
 \end{tcolorbox}
+
+The path given above is specifically for the PYTHIA8 + GEANT3 simulations. The paths for the fast PYTHIA8 and fast HERWIG7 simulations are:
+
+\begin{tcolorbox}
+\begin{verbnobox}[\scriptsize]
+/rstorage/generators/pythia_alice/tree_fastsim/scaleFactors.yaml
+/rstorage/generators/herwig_alice/tree_fastsim/scaleFactors.yaml
+\end{verbnobox}  
+\end{tcolorbox}
+
+respectively.
+
+In the case of the HERWIG7 fast simulation, we observed some outliers. To clean them, do:
+
+\begin{tcolorbox}
+\begin{verbnobox}[\scriptsize]
+python /home/rey/pyjetty/pyjetty/alice_analysis/slurm/utils/rey/scaleHistograms_fastHerwig.py
+\end{verbnobox}  
+\end{tcolorbox}
+
+after the previous step.
 
 \item After the histograms have been scaled, you should merge the $\hat{p}_T$ bins. See for example \href{https://github.com/reynier0611/pyjetty/blob/master/pyjetty/alice_analysis/slurm/utils/rey/merge_pthat.sh}{merge\_pthat.sh}.
 The number in the line \verb|JOB_ID=209384| and paths should be updated. Then do:
@@ -332,6 +354,40 @@ The resulting response matrix is then used to unfold the data.
 \subsubsection{Priors 1, 2}
 \subsubsection{Truncation}
 \subsubsection{Binning}
+
+% ========================================================================================
+\section{Generating PYTHIA events within heppy}
+
+I will use the jet-axis analysis as an example. \\
+cd into \verb|pyjetty/pyjetty/alice_analysis/slurm/sbatch/jet_axis| and do:
+
+\begin{tcolorbox}
+\begin{verbnobox}[\scriptsize]
+sbatch pythia_gen_jet_axis_slurm.sh
+\end{verbnobox}  
+\end{tcolorbox}
+
+This shell script is running jobs over the code: \\ \verb|pyjetty/pyjetty/alice_analysis/process/user/rey/pythia_parton_hadron.py|
+After the jobs are finished, cd into: \verb|/home/rey/pyjetty/pyjetty/alice_analysis/slurm/utils/rey/gen/|. 
+To merge the subjobs for each pT-bins, edit the run number in \verb|merge_pythia.sh|, and then do:
+
+\begin{tcolorbox}
+\begin{verbnobox}[\scriptsize]
+sbatch slurm_merge_pythia.sh
+\end{verbnobox}  
+\end{tcolorbox}
+
+If people are using the cluster and you cannot wait, then do this last step locally by editing the run number in \verb|local_merge_gen.sh|, and then doing:
+
+\begin{tcolorbox}
+\begin{verbnobox}[\scriptsize]
+source sourceme_local_merge_gen.sh
+\end{verbnobox}  
+\end{tcolorbox}
+
+Finally, merge the different pT-hat-bin files using the same method described in the last step of section~\ref{sec:scale_merge}.
+No scaling is needed, since this is already done in the \verb|pythia_parton_hadron.py| code.
+
 
 % ========================================================================================
 
