@@ -27,6 +27,8 @@
 
 \newcommand\tab[1][1cm]{\hspace*{#1}}
 
+\newcommand{\pThard}{$p_{\rm T, \, hard}$}
+\newcommand{\GeVc}{GeV$/c$}
 
 \title{Using pyjetty}
 \author{Reynier Cruz Torres}
@@ -41,6 +43,7 @@
 \newpage
 \section{Processing}
 
+\subsection{pp}
 Example on running a local pp data job:
 
 \begin{tcolorbox}
@@ -51,7 +54,7 @@ python process/user/rey/process_data_energy_drop.py \
 \end{verbnobox}  
 \end{tcolorbox}
 
-Example on running a local pp mc job:
+Example on running a local pp MC job:
 \begin{tcolorbox}
 \begin{verbnobox}[\scriptsize]
 python process/user/rey/process_mc_energy_drop.py \
@@ -60,11 +63,65 @@ python process/user/rey/process_mc_energy_drop.py \
 \end{verbnobox}  
 \end{tcolorbox}
 
+The measured dataset we are currently using corresponds to LHC17p and LHC17q pass1 AOD. We combine the FAST
+trigger cluster with the CENT woSDD trigger cluster, both of which are reconstructed without the SDD.
 Example on running a slurm data job:
 \begin{tcolorbox}
 \begin{verbnobox}[\scriptsize]
-cd slurm/sbatch/energy_drop/
+cd slurm/sbatch/jet_axis/
 sbatch slurm_LHC17pq.sh
+\end{verbnobox}  
+\end{tcolorbox}
+
+The analysis also uses the LHC18b8 Pythia8 \pThard{} MC production (Monash 2013 tune) with the full
+GEANT3 ALICE detector simulation. The production consists of 20 \pThard{} bins, each populated with
+approximately 6M events, with bin edges: $[5, 7, 9, 12, 16, 21, 28, 36, 45, 57, 70, 85, 99, 115, 132, 150,
+65 169, 190, 212, 235, 235+]$ \GeVc. The MC is anchored run-by-run to LHC17pq runs.
+Example on running a slurm MC job:
+\begin{tcolorbox}
+\begin{verbnobox}[\scriptsize]
+cd slurm/sbatch/jet_axis/
+sbatch slurm_LHC18b8.sh
+\end{verbnobox}  
+\end{tcolorbox}
+
+\subsection{Pb-Pb}
+
+The measured dataset we are currently using corresponds to the LHC18q and LHC18r pass3 AOD.
+Example on running a slurm data job:
+\begin{tcolorbox}
+\begin{verbnobox}[\scriptsize]
+cd slurm/sbatch/jet_axis/PbPb/
+sbatch slurm_LHC18qr.sh
+\end{verbnobox}  
+\end{tcolorbox}
+
+The simulated dataset we are currently using corresponds to the LHC20g4 Pythia8 \pThard{} MC production (Monash 2013 tune) with the full
+GEANT3 ALICE detector simulation. The production consists of 20 \pThard{} bins, each populated with
+approximately 8M events, with bin edges: $[5, 7, 9, 12, 16, 21, 28, 36, 45, 57, 70, 85, 99, 115, 132, 150, 101 169, 190, 212, 235, 235+]$ \GeVc. 
+Example on running a slurm data job:
+\begin{tcolorbox}
+\begin{verbnobox}[\scriptsize]
+cd slurm/sbatch/jet_axis/PbPb/
+sbatch slurm_LHC20g4_embedding.sh
+\end{verbnobox}  
+\end{tcolorbox}
+
+Compared to pp, the Pb-Pb analysis is very heavy. First of all, we have much more Pb-Pb statistics than pp. Additionally,
+the MC embedding makes the process slower. Thus, for tests we can use $10\%$ of the measured and simulated data.
+For these, use the following instead of the previous two sets of instructions:
+
+\begin{tcolorbox}
+\begin{verbnobox}[\scriptsize]
+cd slurm/sbatch/jet_axis/PbPb/
+sbatch slurm_LHC18qr_10percent.sh
+\end{verbnobox}  
+\end{tcolorbox}
+
+\begin{tcolorbox}
+\begin{verbnobox}[\scriptsize]
+cd slurm/sbatch/jet_axis/PbPb/
+sbatch slurm_LHC20g4_embedding_10percent.sh
 \end{verbnobox}  
 \end{tcolorbox}
 
