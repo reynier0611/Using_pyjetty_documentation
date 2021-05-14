@@ -46,6 +46,7 @@ This document gives concrete examples on how to use pyjetty~\cite{pyjetty}, whic
 leverages the package heppy~\cite{heppy} and packages therein.
 Specifically, I will use the `jet\_axis' analysis as an example. For running other codes,
 replace the label `jet\_axis' with the appropriate identifier.
+Studies with pyjetty are done in two steps: 1) processing, and 2) analysis.
 
 \section{Processing}
 
@@ -54,18 +55,18 @@ Example on running a local pp data job:
 
 \begin{tcolorbox}
 \begin{verbnobox}[\scriptsize]
-python process/user/rey/process_data_energy_drop.py \
+python process/user/rey/process_data_jet_axis.py \
 -f /rstorage/alice/data/LHC17pq/448/20-06-2020/448_20200619-0610/unmerged/child_1/0001/AnalysisResults.root \
--c config/energy_drop/rey_pp.yaml
+-c config/jet_axis/rey_pp.yaml
 \end{verbnobox}  
 \end{tcolorbox}
 
 Example on running a local pp MC job:
 \begin{tcolorbox}
 \begin{verbnobox}[\scriptsize]
-python process/user/rey/process_mc_energy_drop.py \
+python process/user/rey/process_mc_jet_axis.py \
 -f /rstorage/alice/data/LHC18b8/520/child_1/TrainOutput/1/282008/0001/AnalysisResults.root \
--c config/energy_drop/rey_pp.yaml
+-c config/jet_axis/rey_pp.yaml
 \end{verbnobox}  
 \end{tcolorbox}
 
@@ -229,7 +230,7 @@ source merge_pthat.sh
 You need to begin by creating a code in: \verb|pyjetty/pyjetty/alice_analysis/analysis/user/|.
 This code will inherit from
 \href{https://github.com/reynier0611/pyjetty/blob/master/pyjetty/alice_analysis/analysis/user/substructure/run_analysis.py}{/substructure/run\_analysis.py}.
-For an example analysis code see: \href{https://github.com/reynier0611/pyjetty/blob/master/pyjetty/alice_analysis/analysis/user/rey/run_analysis_energy_drop.py}{run\_analysis\_energy\_drop.py}.
+For an example analysis code see: \href{https://github.com/reynier0611/pyjetty/blob/master/pyjetty/alice_analysis/analysis/user/rey/run_analysis_jet_axis.py}{run\_analysis\_jet\_axis.py}.
 
 \subsubsection{Functions the user needs to implement}
 
@@ -251,7 +252,7 @@ You also need to edit two functions in \href{https://github.com/reynier0611/pyje
 
 \begin{tcolorbox}
 \begin{verbnobox}[\scriptsize]
-python analysis/user/rey/run_analysis_energy_drop.py  -c config/energy_drop/rey_pp.yaml
+python analysis/user/rey/run_analysis_jet_axis.py  -c config/jet_axis/rey_pp.yaml
 \end{verbnobox}  
 \end{tcolorbox}
 
