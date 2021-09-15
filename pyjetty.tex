@@ -92,6 +92,15 @@ sbatch slurm_LHC18b8.sh
 \end{verbnobox}  
 \end{tcolorbox}
 
+There are five different processing jobs that need to be submitted:
+\begin{enumerate}
+\item nominal processing for data
+\item nominal processing for MC
+\item processing for track efficiency (same as nominal MC, but randomly rejecting 4$\%$ of tracks for systematic uncertainty)
+\item fast simulation with PYTHIA generator
+\item fast simulation with HERWIG generator (these last two are combined to determine generator systematic uncertainty)
+\end{enumerate}
+
 \subsection{Pb-Pb}
 
 The measured dataset we are currently using corresponds to the LHC18q and LHC18r pass3 AOD.
@@ -131,6 +140,16 @@ cd slurm/sbatch/jet_axis/PbPb/
 sbatch slurm_LHC20g4_embedding_10percent.sh
 \end{verbnobox}  
 \end{tcolorbox}
+
+There are six different processing jobs that need to be submitted:
+\begin{enumerate}
+\item nominal processing for data
+\item nominal processing for MC (embedding PYTHIA event in PbPb background, rejecting 2$\%$ of tracks)
+\item processing for track efficiency (same as nominal MC, but randomly rejecting 6$\%$ of tracks for systematic uncertainty)
+\item fast simulation with PYTHIA generator
+\item fast simulation with HERWIG generator (these last two are combined to determine generator systematic uncertainty)
+\item thermal mode: embedding PYTHIA event in thermal background)
+\end{enumerate}
 
 % ========================================================================================
 \section{Merging data root files}
@@ -199,7 +218,13 @@ The path given above is specifically for the PYTHIA8 + GEANT3 simulations. The p
 \end{verbnobox}  
 \end{tcolorbox}
 
-respectively.
+respectively. For the Pb-Pb full simulations, the scale factors are here:
+
+\begin{tcolorbox}
+\begin{verbnobox}[\scriptsize]
+/rstorage/alice/data/LHC20g4/scaleFactors.yaml
+\end{verbnobox}  
+\end{tcolorbox}
 
 In the case of the HERWIG7 fast simulation, we observed some outliers. To clean them, do:
 
@@ -452,6 +477,50 @@ source sourceme_local_merge_gen.sh
 Finally, merge the different pT-hat-bin files using the same method described in the last step of section~\ref{sec:scale_merge}.
 No scaling is needed, since this is already done in the \verb|pythia_parton_hadron.py| code.
 
+
+% ========================================================================================
+\section{Folding theory calculations}
+Theory calculations may need some corrections in order to be compared to data.
+For instance, while the data will correspond to full jets or charged jets, the calculations may be at parton level.
+Additionally, while the data may contain background effects, the calculations may be background-free.
+
+Just like in the actual data analysis, there are two steps for these corrections: 1) a processing step and 2) an analysis step.
+See more details \href{https://conferences.lbl.gov/event/637/}{here}.
+
+\subsection{Processing step}
+
+Example on running interactively for testing:
+
+\begin{tcolorbox}
+\begin{verbnobox}[\scriptsize]
+python process/user/rey/process_parton_hadron_jet_axis.py \
+ -c rey_pp_R_0.4_pT_20_40_GeV_WTA_testing_theory_folding.yaml \
+ -f /rstorage/alice/sim/pythia_gen/504913/1/45/AnalysisResults.root
+\end{verbnobox}  
+\end{tcolorbox}
+
+\subsection{Analysis step}
+
+\begin{tcolorbox}
+\begin{verbnobox}[\scriptsize]
+python analysis/user/rey/run_fold_theory_jet_axis.py -c config/jet_axis/rey_pp_processing_and_theory_folding.yaml
+\end{verbnobox}  
+\end{tcolorbox}
+
+\begin{tcolorbox}
+\begin{verbnobox}[\scriptsize]
+th_fold_observable: `jet_axis'
+do_theory_comp: True
+theory_dir: `/home/rey/jet_axis_theory_calculations/data/'
+pt_scale_factors_path: `/home/rey/jet_axis_theory_calculations/data/'
+response_files: ["path/to/response1/AnalysisResultsFinal.root","path/to/response2/AnalysisResultsFinal.root"]
+response_labels: ["PYTHIA8", "Herwig7"]
+response_levels: [[`h',`ch',`off'],[`p',`ch',`on']]
+th_subconfigs: [`config1',`config2',`config3']
+theory_pt_bins: [40,45,50,55,60,65,70,75,80,85,90,95,100,105,110,115,120,125,130,135,140,145,150]
+final_pt_bins: [40,60,80,100]
+\end{verbnobox}  
+\end{tcolorbox}
 
 % ========================================================================================
 
