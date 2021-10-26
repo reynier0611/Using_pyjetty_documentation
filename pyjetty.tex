@@ -489,7 +489,7 @@ See more details \href{https://conferences.lbl.gov/event/637/}{here}.
 
 \subsection{Processing step}
 
-Example on running interactively for testing:
+Here's an example on running interactively for testing on Pythia:
 
 \begin{tcolorbox}
 \begin{verbnobox}[\scriptsize]
@@ -499,11 +499,30 @@ python process/user/rey/process_parton_hadron_jet_axis.py \
 \end{verbnobox}  
 \end{tcolorbox}
 
+and here's an example on running interactively for testing on Herwig:
+
+\begin{tcolorbox}
+\begin{verbnobox}[\scriptsize]
+python process/user/rey/process_parton_hadron_jet_axis.py \
+-c rey_pp_R_0.4_pT_20_40_GeV_WTA_testing_theory_folding.yaml \
+-f /rstorage/alice/sim/herwig_gen/505074/1/142/AnalysisResults.root
+\end{verbnobox}  
+\end{tcolorbox}
+
+Slurm submission scripts can be found in \verb|slurm/sbatch/jet_axis/pp/gen|. Do, for example:
+
+\begin{tcolorbox}
+\begin{verbnobox}[\scriptsize]
+sbatch herwig_deltaR_slurm_R04.sh
+\end{verbnobox}  
+\end{tcolorbox}
+
 \subsection{Analysis step}
 
 \begin{tcolorbox}
 \begin{verbnobox}[\scriptsize]
-python analysis/user/rey/run_fold_theory_jet_axis.py -c config/jet_axis/rey_pp_processing_and_theory_folding.yaml
+python analysis/user/rey/run_fold_theory_jet_axis.py \
+-c config/jet_axis/rey_pp_processing_and_theory_folding_R04.yaml
 \end{verbnobox}  
 \end{tcolorbox}
 
@@ -519,6 +538,60 @@ response_levels: [[`h',`ch',`off'],[`p',`ch',`on']]
 th_subconfigs: [`config1',`config2',`config3']
 theory_pt_bins: [40,45,50,55,60,65,70,75,80,85,90,95,100,105,110,115,120,125,130,135,140,145,150]
 final_pt_bins: [40,60,80,100]
+\end{verbnobox}  
+\end{tcolorbox}
+
+% ========================================================================================
+\section{Plotting folded SCET calculations along with the data}
+
+\begin{tcolorbox}
+\begin{verbnobox}[\scriptsize]
+cd analysis/user/rey/
+source sourceme_plot_jet_axis_scet_comp.sh
+\end{verbnobox}  
+\end{tcolorbox}
+
+That should execute commands like:
+
+\begin{tcolorbox}
+\begin{verbnobox}[\scriptsize]
+python plot_jet_axis_scet_comp.py \
+-c ../../../config/jet_axis/configs_broken_down_in_pT_and_jetR/pp/rey_pp_R_0.4_pT_20_40_GeV.yaml
+\end{verbnobox}  
+\end{tcolorbox}
+
+where, besides the information related to the folded SCET calculations presented in the previous section, a line pointing to the root file containing the final plots must be added:
+\begin{tcolorbox}
+\begin{verbnobox}[\scriptsize]
+final_data: '/path/to/final_results/fFinalResults.root'
+\end{verbnobox}  
+\end{tcolorbox}
+
+% ========================================================================================
+\section{Plotting ratio of Pb-Pb / pp distributions}
+
+\begin{tcolorbox}
+\begin{verbnobox}[\scriptsize]
+cd analysis/user/rey/
+source sourceme_plot_jet_axis_raa.sh
+\end{verbnobox}  
+\end{tcolorbox}
+
+That should execute commands like:
+
+\begin{tcolorbox}
+\begin{verbnobox}[\scriptsize]
+python plot_jet_axis_raa.py \
+-c ../../../config/jet_axis/configs_broken_down_in_pT_and_jetR/PbPb/rey_PbPb_R_0.2_pT_40_60_GeV_WTA.yaml
+\end{verbnobox}  
+\end{tcolorbox}
+
+where the following lines must be added to the config file:
+\begin{tcolorbox}
+\begin{verbnobox}[\scriptsize]
+# Data
+file_pp: '/path/to/pp/final_results/fFinalResults.root'
+file_AA: '/path/to/PbPb/final_results/fFinalResults.root'
 \end{verbnobox}  
 \end{tcolorbox}
 
