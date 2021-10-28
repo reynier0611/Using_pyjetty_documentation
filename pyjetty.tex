@@ -596,6 +596,38 @@ file_AA: '/path/to/PbPb/final_results/fFinalResults.root'
 \end{tcolorbox}
 
 % ========================================================================================
+\section{Creating curves from generator data for theory comparison}
+
+When running $e.g.$ a fast simulation, we still construct a response matrix and other objects. For the theory comparison, these objects are not needed.
+We only need the truth spectra. Here's how to produce such spectra. To run a test locally, do:
+
+\begin{tcolorbox}
+\begin{verbnobox}[\scriptsize]
+python process/user/rey/process_curve_from_generator_jet_axis.py \
+-c config/jet_axis/rey_PbPb_R02.yaml \
+-f /rstorage/generators/jewel_alice/746611/5/111/jewel.root
+\end{verbnobox}  
+\end{tcolorbox}
+
+To run over the entire dataset:
+\begin{tcolorbox}
+\begin{verbnobox}[\scriptsize]
+cd slurm/sbatch/jet_axis/PbPb
+sbatch slurm_JEWEL_R02.sh
+\end{verbnobox}  
+\end{tcolorbox}
+
+% ========================================================================================
+\section{Creating a txt file with all files in a subdirectory}
+
+\begin{tcolorbox}
+\begin{verbnobox}[\scriptsize]
+ls -l */*/jewel.root > filename.txt
+\end{verbnobox}  
+\end{tcolorbox}
+
+% ========================================================================================
+
 
 \bibliography{bib_file}
 \bibliographystyle{ieeetr}
