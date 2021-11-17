@@ -82,8 +82,8 @@ sbatch slurm_LHC17pq.sh
 
 The analysis also uses the LHC18b8 Pythia8 \pThard{} MC production (Monash 2013 tune) with the full
 GEANT3 ALICE detector simulation. The production consists of 20 \pThard{} bins, each populated with
-approximately 6M events, with bin edges: $[5, 7, 9, 12, 16, 21, 28, 36, 45, 57, 70, 85, 99, 115, 132, 150,
-65 169, 190, 212, 235, 235+]$ \GeVc. The MC is anchored run-by-run to LHC17pq runs.
+approximately 6M events, with bin edges: $[$5, 7, 9, 12, 16, 21, 28, 36, 45, 57, 70, 85, 99, 115, 132, 150,
+65 169, 190, 212, 235, 235+$]$ \GeVc. The MC is anchored run-by-run to LHC17pq runs.
 Example on running a slurm MC job:
 \begin{tcolorbox}
 \begin{verbnobox}[\scriptsize]
@@ -538,8 +538,19 @@ response_levels: [[`h',`ch',`off'],[`p',`ch',`on']]
 th_subconfigs: [`config1',`config2',`config3']
 theory_pt_bins: [40,45,50,55,60,65,70,75,80,85,90,95,100,105,110,115,120,125,130,135,140,145,150]
 final_pt_bins: [40,60,80,100]
-\end{verbnobox}  
+\end{verbnobox}
 \end{tcolorbox}
+
+You can also choose to have a parameter \verb|theory_obs_bins| in the config file, $e.g.$:
+
+\begin{tcolorbox}
+\begin{verbnobox}[\scriptsize]
+theory_obs_bins: [0.,0.005,0.01,0.015,0.02,0.025,0.03,0.035,0.04,0.045,0.05,0.055, \
+0.06,0.07,0.08,0.09,0.1,0.11,0.12,0.13,0.14,0.15,0.16,0.17,0.18,0.19,0.2]
+\end{verbnobox}
+\end{tcolorbox}
+If you include it, the code will return the observable with this binning. If you don't include it,
+whatever bin is in the RM matrix for the observable will be used.
 
 % ========================================================================================
 \section{Plotting folded SCET calculations along with the data}
@@ -599,13 +610,14 @@ file_AA: '/path/to/PbPb/final_results/fFinalResults.root'
 \section{Creating curves from generator data for theory comparison}
 
 When running $e.g.$ a fast simulation, we still construct a response matrix and other objects. For the theory comparison, these objects are not needed.
-We only need the truth spectra. Here's how to produce such spectra. To run a test locally, do:
+We only need the truth spectra. Here's how to produce such spectra. To run a test locally over a Jewel PbPb job, do:
 
 \begin{tcolorbox}
 \begin{verbnobox}[\scriptsize]
 python process/user/rey/process_curve_from_generator_jet_axis.py \
 -c config/jet_axis/rey_PbPb_R02.yaml \
--f /rstorage/generators/jewel_alice/746611/5/111/jewel.root
+-f /rstorage/generators/jewel_alice/tree_gen/746611/1/176/jewel.root \
+-t PWGHF_TreeCreator
 \end{verbnobox}  
 \end{tcolorbox}
 
@@ -616,6 +628,17 @@ cd slurm/sbatch/jet_axis/PbPb
 sbatch slurm_JEWEL_R02.sh
 \end{verbnobox}  
 \end{tcolorbox}
+
+To run over pythia pp, do:
+\begin{tcolorbox}
+\begin{verbnobox}[\scriptsize]
+cd slurm/sbatch/jet_axis/PbPb
+sbatch slurm_PYTHIA_R02.sh
+\end{verbnobox}  
+\end{tcolorbox}
+
+In this case the resulting distributions are for pp, to use as a baseline for the PbPb predictions. The only difference is in the config files provided.
+The config file provided for the JEWEL events contains parameters for constituent subtraction, thus background subtraction is carried out, whereas we don't do this for pp.
 
 % ========================================================================================
 \section{Creating a txt file with all files in a subdirectory}
